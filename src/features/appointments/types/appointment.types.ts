@@ -35,6 +35,10 @@ export const updateAppointmentStatusSchema = z.object({
   status: z.enum([AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED]),
 });
 
+export const replaceAppointmentSchema = createAppointmentSchema.extend({
+  status: z.enum([AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED]),
+});
+
 const calendarDateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected format YYYY-MM-DD')
@@ -49,5 +53,6 @@ export const listAppointmentsQuerySchema = z.object({
 });
 
 export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
+export type ReplaceAppointmentInput = z.infer<typeof replaceAppointmentSchema>;
 export type UpdateAppointmentStatusInput = z.infer<typeof updateAppointmentStatusSchema>;
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;

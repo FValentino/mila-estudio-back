@@ -1,12 +1,17 @@
 import express from 'express';
 import { asyncRoute } from '../../../shared/http/async-route.js';
 import { idParamSchema } from '../../../shared/http/id-param.schema.js';
-import { createProfessionalSchema, updateProfessionalSchema } from '../types/professional.types.js';
+import {
+  createProfessionalSchema,
+  replaceProfessionalSchema,
+  updateProfessionalSchema,
+} from '../types/professional.types.js';
 import {
   createProfessional,
   getProfessional,
   listProfessionals,
   removeProfessional,
+  replaceProfessional,
   updateProfessional,
 } from '../services/professionals.services.js';
 
@@ -30,6 +35,12 @@ professionalsRouter.patch('/:id', asyncRoute(async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
   const input = updateProfessionalSchema.parse(req.body);
   res.json(await updateProfessional(id, input));
+}));
+
+professionalsRouter.put('/:id', asyncRoute(async (req, res) => {
+  const { id } = idParamSchema.parse(req.params);
+  const input = replaceProfessionalSchema.parse(req.body);
+  res.json(await replaceProfessional(id, input));
 }));
 
 professionalsRouter.delete('/:id', asyncRoute(async (req, res) => {

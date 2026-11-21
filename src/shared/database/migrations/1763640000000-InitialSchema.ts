@@ -35,6 +35,7 @@ export class InitialSchema1763640000000 implements MigrationInterface {
         "id" uuid NOT NULL DEFAULT gen_random_uuid(),
         "name" character varying(150) NOT NULL,
         "durationMinutes" integer NOT NULL,
+        "price" numeric(10,2) NOT NULL,
         "area_id" uuid NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
         "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),

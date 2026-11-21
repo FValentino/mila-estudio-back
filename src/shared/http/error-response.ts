@@ -57,8 +57,9 @@ export function errorHandler(error: unknown, _req: Request, res: Response, _next
     return;
   }
 
-  if (transportStatusOf(error) !== undefined) {
-    sendError(res, 400, 'Invalid request');
+  const transportStatus = transportStatusOf(error);
+  if (transportStatus !== undefined) {
+    sendError(res, transportStatus, transportStatus === 401 ? 'Unauthorized' : 'Invalid request');
     return;
   }
 

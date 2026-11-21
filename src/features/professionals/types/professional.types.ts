@@ -20,5 +20,12 @@ export const updateProfessionalSchema = createProfessionalSchema.partial().refin
   'At least one field is required',
 );
 
+export const replaceProfessionalSchema = z.object({
+  firstName: z.string().trim().min(1).max(120),
+  lastName: z.string().trim().min(1).max(120),
+  areaId: z.uuid(),
+});
+
 export type CreateProfessionalInput = z.infer<typeof createProfessionalSchema>;
 export type UpdateProfessionalInput = z.infer<typeof updateProfessionalSchema>;
+export type ReplaceProfessionalInput = z.infer<typeof replaceProfessionalSchema>;

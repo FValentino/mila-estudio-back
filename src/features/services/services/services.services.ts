@@ -9,7 +9,12 @@ import {
   saveService,
 } from '../repositories/services.repository.js';
 import { mapServiceToDto } from '../types/service.mapper.js';
-import type { CreateServiceInput, ServiceDto, UpdateServiceInput } from '../types/service.types.js';
+import type {
+  CreateServiceInput,
+  ReplaceServiceInput,
+  ServiceDto,
+  UpdateServiceInput,
+} from '../types/service.types.js';
 
 function areaReference(areaId: string): Area {
   const area = new Area();
@@ -36,6 +41,7 @@ export async function createService(input: CreateServiceInput): Promise<ServiceD
   const service = new ServiceOffering();
   service.name = input.name;
   service.durationMinutes = input.durationMinutes;
+  service.price = input.price.toFixed(2);
   service.area = areaReference(input.areaId);
   service.areaId = input.areaId;
   return mapServiceToDto(await saveService(service));
@@ -52,11 +58,28 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
   if (input.durationMinutes !== undefined) {
     service.durationMinutes = input.durationMinutes;
   }
+  if (input.price !== undefined) {
+    service.price = input.price.toFixed(2);
+  }
   if (input.areaId !== undefined) {
     await getArea(input.areaId);
     service.area = areaReference(input.areaId);
     service.areaId = input.areaId;
   }
+  return mapServiceToDto(await saveService(service));
+}
+
+export async function replaceService(id: string, input: ReplaceServiceInput): Promise<ServiceDto> {
+  const service = await findServiceById(id);
+  if (service === null) {
+    throw new NotFoundError(`Service with id ${id} was not found`);
+  }
+  await getArea(input.areaId);
+  service.name = input.name;
+  service.durationMinutes = input.durationMinutes;
+  service.price = input.price.toFixed(2);
+  service.area = areaReference(input.areaId);
+  service.areaId = input.areaId;
   return mapServiceToDto(await saveService(service));
 }
 

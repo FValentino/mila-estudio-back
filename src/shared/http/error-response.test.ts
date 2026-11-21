@@ -45,6 +45,17 @@ describe('errorHandler', () => {
     expect(consoleError).not.toHaveBeenCalled();
   });
 
+  it('preserves a transport 401 instead of degrading it to 400', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { res, status, json } = setup();
+
+    errorHandler({ status: 401 }, {} as Request, res, next);
+
+    expect(status).toHaveBeenCalledWith(401);
+    expect(json).toHaveBeenCalledWith({ error: { message: 'Unauthorized', details: [] } });
+    expect(consoleError).not.toHaveBeenCalled();
+  });
+
   it('logs unexpected errors as 500', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { res, status } = setup();

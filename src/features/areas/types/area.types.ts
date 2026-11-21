@@ -18,5 +18,11 @@ export const updateAreaSchema = createAreaSchema.partial().refine(
   'At least one field is required',
 );
 
+export const replaceAreaSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().trim().max(500).nullish(),
+});
+
 export type CreateAreaInput = z.infer<typeof createAreaSchema>;
 export type UpdateAreaInput = z.infer<typeof updateAreaSchema>;
+export type ReplaceAreaInput = z.infer<typeof replaceAreaSchema>;

@@ -13,6 +13,9 @@ export class ServiceOffering {
   @Column({ type: 'int' })
   durationMinutes!: number;
 
+  @Column({ type: 'numeric', precision: 10, scale: 2 })
+  price!: string;
+
   @ManyToOne(() => Area, { onDelete: 'RESTRICT', nullable: false })
   @JoinColumn({ name: 'area_id' })
   area!: Area;

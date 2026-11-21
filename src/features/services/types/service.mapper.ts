@@ -6,6 +6,7 @@ export function mapServiceToDto(service: ServiceOffering): ServiceDto {
     id: service.id,
     name: service.name,
     durationMinutes: service.durationMinutes,
+    price: Number(service.price),
     areaId: service.areaId,
     createdAt: service.createdAt.toISOString(),
     updatedAt: service.updatedAt.toISOString(),

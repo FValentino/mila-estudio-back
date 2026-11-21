@@ -1,8 +1,8 @@
 import express from 'express';
 import { asyncRoute } from '../../../shared/http/async-route.js';
 import { idParamSchema } from '../../../shared/http/id-param.schema.js';
-import { createAreaSchema, updateAreaSchema } from '../types/area.types.js';
-import { createArea, getArea, listAreas, removeArea, updateArea } from '../services/areas.services.js';
+import { createAreaSchema, replaceAreaSchema, updateAreaSchema } from '../types/area.types.js';
+import { createArea, getArea, listAreas, removeArea, replaceArea, updateArea } from '../services/areas.services.js';
 
 export const areasRouter: express.Router = express.Router();
 
@@ -24,6 +24,12 @@ areasRouter.patch('/:id', asyncRoute(async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
   const input = updateAreaSchema.parse(req.body);
   res.json(await updateArea(id, input));
+}));
+
+areasRouter.put('/:id', asyncRoute(async (req, res) => {
+  const { id } = idParamSchema.parse(req.params);
+  const input = replaceAreaSchema.parse(req.body);
+  res.json(await replaceArea(id, input));
 }));
 
 areasRouter.delete('/:id', asyncRoute(async (req, res) => {

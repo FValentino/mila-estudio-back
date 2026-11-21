@@ -4,6 +4,7 @@ import { idParamSchema } from '../../../shared/http/id-param.schema.js';
 import {
   createAppointmentSchema,
   listAppointmentsQuerySchema,
+  replaceAppointmentSchema,
   updateAppointmentStatusSchema,
 } from '../types/appointment.types.js';
 import {
@@ -11,6 +12,7 @@ import {
   getAppointment,
   listAppointments,
   removeAppointment,
+  replaceAppointment,
   updateAppointmentStatus,
 } from '../services/appointments.services.js';
 
@@ -29,6 +31,12 @@ appointmentsRouter.get('/:id', asyncRoute(async (req, res) => {
 appointmentsRouter.post('/', asyncRoute(async (req, res) => {
   const input = createAppointmentSchema.parse(req.body);
   res.status(201).json(await createAppointment(input));
+}));
+
+appointmentsRouter.put('/:id', asyncRoute(async (req, res) => {
+  const { id } = idParamSchema.parse(req.params);
+  const input = replaceAppointmentSchema.parse(req.body);
+  res.json(await replaceAppointment(id, input));
 }));
 
 appointmentsRouter.patch('/:id/status', asyncRoute(async (req, res) => {

@@ -9,6 +9,11 @@ export const app: express.Express = express();
 
 app.use(json());
 
+app.use((req, _res, next) => {
+  console.log(req.method, req.originalUrl);
+  next();
+});
+
 app.use('/api/areas', areasRouter);
 app.use('/api/professionals', professionalsRouter);
 app.use('/api/services', servicesRouter);

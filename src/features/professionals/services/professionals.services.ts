@@ -12,6 +12,7 @@ import { mapProfessionalToDto } from '../types/professional.mapper.js';
 import type {
   CreateProfessionalInput,
   ProfessionalDto,
+  ReplaceProfessionalInput,
   UpdateProfessionalInput,
 } from '../types/professional.types.js';
 
@@ -61,6 +62,22 @@ export async function updateProfessional(id: string, input: UpdateProfessionalIn
     professional.area = areaReference(input.areaId);
     professional.areaId = input.areaId;
   }
+  return mapProfessionalToDto(await saveProfessional(professional));
+}
+
+export async function replaceProfessional(
+  id: string,
+  input: ReplaceProfessionalInput,
+): Promise<ProfessionalDto> {
+  const professional = await findProfessionalById(id);
+  if (professional === null) {
+    throw new NotFoundError(`Professional with id ${id} was not found`);
+  }
+  await getArea(input.areaId);
+  professional.firstName = input.firstName;
+  professional.lastName = input.lastName;
+  professional.area = areaReference(input.areaId);
+  professional.areaId = input.areaId;
   return mapProfessionalToDto(await saveProfessional(professional));
 }
 

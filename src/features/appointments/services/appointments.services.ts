@@ -2,18 +2,22 @@ import { DateTime } from 'luxon';
 import { env } from '../../../shared/config/env.js';
 import { ConflictError, NotFoundError } from '../../../shared/errors/domain-errors.js';
 import { Appointment } from '../entities/appointment.entity.js';
+import type { Professional } from '../../professionals/entities/professional.entity.js';
+import type { ServiceOffering } from '../../services/entities/service.entity.js';
 import {
   deleteAppointment,
   findAppointment,
   findAppointments,
   withAppointmentTransaction,
 } from '../repositories/appointments.repository.js';
+import type { AppointmentStore } from '../repositories/appointments.repository.js';
 import { mapAppointmentToDto } from '../types/appointment.mapper.js';
 import { AppointmentStatus } from '../types/appointment.types.js';
 import type {
   AppointmentDto,
   CreateAppointmentInput,
   ListAppointmentsQuery,
+  ReplaceAppointmentInput,
 } from '../types/appointment.types.js';
 import { assertNoOverlap, intervalIntersectsDay } from './overlap.js';
 import type { AppointmentInterval } from './overlap.js';
@@ -41,6 +45,41 @@ function localDayBounds(date: string | undefined): AppointmentInterval | undefin
   };
 }
 
+interface ValidatedAppointmentRequest {
+  professional: Professional;
+  service: ServiceOffering;
+  start: Date;
+  endAt: Date;
+}
+
+async function validateAppointmentRequest(
+  store: AppointmentStore,
+  professionalId: string,
+  serviceId: string,
+  startInput: string,
+  excludeId?: string,
+): Promise<ValidatedAppointmentRequest> {
+  const professional = await store.lockProfessional(professionalId);
+  if (professional === null) {
+    throw new NotFoundError(`Professional with id ${professionalId} was not found`);
+  }
+
+  const service = await store.findService(serviceId);
+  if (service === null) {
+    throw new NotFoundError(`Service with id ${serviceId} was not found`);
+  }
+  if (professional.areaId !== service.areaId) {
+    throw new ConflictError('The service does not belong to the professional area');
+  }
+
+  const start = new Date(startInput);
+  const endAt = new Date(start.getTime() + service.durationMinutes * MINUTE_IN_MS);
+  const existing = await store.findOverlappingAppointments(professional.id, start, endAt, excludeId);
+  assertNoOverlap(activeAppointments(existing, excludeId).map(appointmentInterval), { start, end: endAt });
+
+  return { professional, service, start, endAt };
+}
+
 export async function listAppointments(query: ListAppointmentsQuery): Promise<AppointmentDto[]> {
   const day = localDayBounds(query.date);
   const appointments = await findAppointments({
@@ -64,24 +103,12 @@ export async function getAppointment(id: string): Promise<AppointmentDto> {
 
 export async function createAppointment(input: CreateAppointmentInput): Promise<AppointmentDto> {
   return withAppointmentTransaction(async (store) => {
-    const professional = await store.lockProfessional(input.professionalId);
-    if (professional === null) {
-      throw new NotFoundError(`Professional with id ${input.professionalId} was not found`);
-    }
-
-    const service = await store.findService(input.serviceId);
-    if (service === null) {
-      throw new NotFoundError(`Service with id ${input.serviceId} was not found`);
-    }
-    if (professional.areaId !== service.areaId) {
-      throw new ConflictError('The service does not belong to the professional area');
-    }
-
-    const start = new Date(input.start);
-    const endAt = new Date(start.getTime() + service.durationMinutes * MINUTE_IN_MS);
-
-    const existing = await store.findOverlappingAppointments(professional.id, start, endAt);
-    assertNoOverlap(activeAppointments(existing).map(appointmentInterval), { start, end: endAt });
+    const { professional, service, start, endAt } = await validateAppointmentRequest(
+      store,
+      input.professionalId,
+      input.serviceId,
+      input.start,
+    );
 
     const appointment = new Appointment();
     appointment.professional = professional;
@@ -95,6 +122,40 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
     appointment.clientEmail = input.clientEmail ?? null;
     appointment.notes = input.notes ?? null;
     appointment.status = AppointmentStatus.CONFIRMED;
+
+    return mapAppointmentToDto(await store.saveAppointment(appointment));
+  });
+}
+
+export async function replaceAppointment(
+  id: string,
+  input: ReplaceAppointmentInput,
+): Promise<AppointmentDto> {
+  return withAppointmentTransaction(async (store) => {
+    const appointment = await store.findAppointmentById(id);
+    if (appointment === null) {
+      throw new NotFoundError(`Appointment with id ${id} was not found`);
+    }
+
+    const { professional, service, start, endAt } = await validateAppointmentRequest(
+      store,
+      input.professionalId,
+      input.serviceId,
+      input.start,
+      id,
+    );
+
+    appointment.professional = professional;
+    appointment.professionalId = professional.id;
+    appointment.service = service;
+    appointment.serviceId = service.id;
+    appointment.start = start;
+    appointment.endAt = endAt;
+    appointment.clientName = input.clientName;
+    appointment.clientPhone = input.clientPhone;
+    appointment.clientEmail = input.clientEmail ?? null;
+    appointment.notes = input.notes ?? null;
+    appointment.status = input.status;
 
     return mapAppointmentToDto(await store.saveAppointment(appointment));
   });

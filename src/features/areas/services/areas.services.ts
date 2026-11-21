@@ -2,7 +2,7 @@ import { NotFoundError } from '../../../shared/errors/domain-errors.js';
 import { Area } from '../entities/area.entity.js';
 import { deleteArea, findAllAreas, findAreaById, saveArea } from '../repositories/areas.repository.js';
 import { mapAreaToDto } from '../types/area.mapper.js';
-import type { AreaDto, CreateAreaInput, UpdateAreaInput } from '../types/area.types.js';
+import type { AreaDto, CreateAreaInput, ReplaceAreaInput, UpdateAreaInput } from '../types/area.types.js';
 
 export async function listAreas(): Promise<AreaDto[]> {
   const areas = await findAllAreas();
@@ -35,6 +35,16 @@ export async function updateArea(id: string, input: UpdateAreaInput): Promise<Ar
   if (input.description !== undefined) {
     area.description = input.description;
   }
+  return mapAreaToDto(await saveArea(area));
+}
+
+export async function replaceArea(id: string, input: ReplaceAreaInput): Promise<AreaDto> {
+  const area = await findAreaById(id);
+  if (area === null) {
+    throw new NotFoundError(`Area with id ${id} was not found`);
+  }
+  area.name = input.name;
+  area.description = input.description ?? null;
   return mapAreaToDto(await saveArea(area));
 }
 
