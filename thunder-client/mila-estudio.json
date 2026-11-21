@@ -1,65 +1,81 @@
 {
   "client": "Thunder Client",
   "collectionName": "Mila Estudio",
-  "dateExported": "2026-11-20T00:00:00.000Z",
-  "version": "1.1.0",
+  "dateExported": "2026-11-21T00:00:00.000Z",
+  "version": "1.2.0",
   "variables": [
-    { "name": "baseUrl", "value": "http://localhost:3000" }
+    {"name":"baseUrl","value":"http://localhost:3000"},
+    {"name":"token","value":""},
+    {"name":"adminToken","value":""}
   ],
   "collections": [
     {
+      "name": "Auth",
+      "items": [
+        {"name":"Register user","request":{"method":"POST","url":"{{baseUrl}}/api/auth/register","headers":[{"name":"Content-Type","value":"application/json"}],"params":[],"body":{"type":"json","raw":"{\"email\": \"user@example.com\", \"password\": \"correct-password\"}"},"tests":[]}},
+        {"name":"Login user","request":{"method":"POST","url":"{{baseUrl}}/api/auth/login","headers":[{"name":"Content-Type","value":"application/json"}],"params":[],"body":{"type":"json","raw":"{\"email\": \"user@example.com\", \"password\": \"correct-password\"}"},"tests":[]}},
+        {"name":"Login with invalid credentials (401)","request":{"method":"POST","url":"{{baseUrl}}/api/auth/login","headers":[{"name":"Content-Type","value":"application/json"}],"params":[],"body":{"type":"json","raw":"{\"email\": \"user@example.com\", \"password\": \"wrong-password\"}"},"tests":[]}},
+        {"name":"Write without token (401)","request":{"method":"POST","url":"{{baseUrl}}/api/areas","headers":[{"name":"Content-Type","value":"application/json"}],"params":[],"body":{"type":"json","raw":"{\"name\": \"Manicuría\"}"},"tests":[]}},
+        {"name":"Write with non-admin token (403)","request":{"method":"POST","url":"{{baseUrl}}/api/areas","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\": \"Manicuría\"}"},"tests":[]}},
+        {"name":"Delete as admin (204)","request":{"method":"DELETE","url":"{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111","headers":[{"name":"Authorization","value":"Bearer {{adminToken}}"}],"params":[],"body":{"type":"none","raw":""},"tests":[]}}
+      ]
+    },
+    {
       "name": "Areas",
       "items": [
-        { "name": "List areas", "request": { "method": "GET", "url": "{{baseUrl}}/api/areas", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Get area by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Create area", "request": { "method": "POST", "url": "{{baseUrl}}/api/areas", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"name\":\"Manicuría\",\"description\":\"Cuidado de uñas\"}" }, "tests": [] } },
-        { "name": "Replace area", "request": { "method": "PUT", "url": "{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"name\":\"Manicuría\",\"description\":\"Cuidado y embellecimiento de uñas\"}" }, "tests": [] } },
-        { "name": "Update area", "request": { "method": "PATCH", "url": "{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"description\":\"Cuidado, embellecimiento y diseño de uñas\"}" }, "tests": [] } },
-        { "name": "Delete area", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } }
+        {"name":"List areas","request":{"method":"GET","url":"{{baseUrl}}/api/areas","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Get area by id","request":{"method":"GET","url":"{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Create area","request":{"method":"POST","url":"{{baseUrl}}/api/areas","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\":\"Manicuría\",\"description\":\"Cuidado de uñas\"}"},"tests":[]}},
+        {"name":"Replace area","request":{"method":"PUT","url":"{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\":\"Manicuría\",\"description\":\"Cuidado y embellecimiento de uñas\"}"},"tests":[]}},
+        {"name":"Update area","request":{"method":"PATCH","url":"{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"description\":\"Cuidado, embellecimiento y diseño de uñas\"}"},"tests":[]}},
+        {"name":"Delete area","request":{"method":"DELETE","url":"{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111","headers":[{"name":"Authorization","value":"Bearer {{adminToken}}"}],"params":[],"body":{"type":"none","raw":""},"tests":[]}}
       ]
     },
     {
       "name": "Professionals",
       "items": [
-        { "name": "List professionals", "request": { "method": "GET", "url": "{{baseUrl}}/api/professionals", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Get professional by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Create professional", "request": { "method": "POST", "url": "{{baseUrl}}/api/professionals", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"firstName\":\"Ana\",\"lastName\":\"Pérez\",\"areaId\":\"11111111-1111-4111-8111-111111111111\"}" }, "tests": [] } },
-        { "name": "Replace professional", "request": { "method": "PUT", "url": "{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"firstName\":\"Ana\",\"lastName\":\"Pérez\",\"areaId\":\"11111111-1111-4111-8111-111111111111\"}" }, "tests": [] } },
-        { "name": "Update professional", "request": { "method": "PATCH", "url": "{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"lastName\":\"García\"}" }, "tests": [] } },
-        { "name": "Delete professional", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } }
+        {"name":"List professionals","request":{"method":"GET","url":"{{baseUrl}}/api/professionals","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Get professional by id","request":{"method":"GET","url":"{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Create professional","request":{"method":"POST","url":"{{baseUrl}}/api/professionals","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"firstName\":\"Ana\",\"lastName\":\"Pérez\",\"areaId\":\"11111111-1111-4111-8111-111111111111\"}"},"tests":[]}},
+        {"name":"Replace professional","request":{"method":"PUT","url":"{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"firstName\":\"Ana\",\"lastName\":\"Pérez\",\"areaId\":\"11111111-1111-4111-8111-111111111111\"}"},"tests":[]}},
+        {"name":"Update professional","request":{"method":"PATCH","url":"{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"lastName\":\"García\"}"},"tests":[]}},
+        {"name":"Delete professional","request":{"method":"DELETE","url":"{{baseUrl}}/api/professionals/22222222-2222-4222-8222-222222222222","headers":[{"name":"Authorization","value":"Bearer {{adminToken}}"}],"params":[],"body":{"type":"none","raw":""},"tests":[]}}
       ]
     },
     {
       "name": "Services",
       "items": [
-        { "name": "List services", "request": { "method": "GET", "url": "{{baseUrl}}/api/services", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Get service by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Create service", "request": { "method": "POST", "url": "{{baseUrl}}/api/services", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"name\":\"Manicuría básica\",\"durationMinutes\":45,\"price\":1500,\"areaId\":\"11111111-1111-4111-8111-111111111111\"}" }, "tests": [] } },
-        { "name": "Replace service", "request": { "method": "PUT", "url": "{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"name\":\"Manicuría básica\",\"durationMinutes\":45,\"price\":1500,\"areaId\":\"11111111-1111-4111-8111-111111111111\"}" }, "tests": [] } },
-        { "name": "Update service", "request": { "method": "PATCH", "url": "{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"price\":1800}" }, "tests": [] } },
-        { "name": "Delete service", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } }
+        {"name":"List services","request":{"method":"GET","url":"{{baseUrl}}/api/services","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Get service by id","request":{"method":"GET","url":"{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Create service","request":{"method":"POST","url":"{{baseUrl}}/api/services","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\":\"Manicuría básica\",\"durationMinutes\":45,\"price\":1500,\"areaId\":\"11111111-1111-4111-8111-111111111111\"}"},"tests":[]}},
+        {"name":"Replace service","request":{"method":"PUT","url":"{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\":\"Manicuría básica\",\"durationMinutes\":45,\"price\":1500,\"areaId\":\"11111111-1111-4111-8111-111111111111\"}"},"tests":[]}},
+        {"name":"Update service","request":{"method":"PATCH","url":"{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"price\":1800}"},"tests":[]}},
+        {"name":"Delete service","request":{"method":"DELETE","url":"{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333","headers":[{"name":"Authorization","value":"Bearer {{adminToken}}"}],"params":[],"body":{"type":"none","raw":""},"tests":[]}}
       ]
     },
     {
       "name": "Appointments",
       "items": [
-        { "name": "List appointments (filtered)", "request": { "method": "GET", "url": "{{baseUrl}}/api/appointments?professionalId=22222222-2222-4222-8222-222222222222&date=2026-11-20", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Get appointment by id", "request": { "method": "GET", "url": "{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "Create appointment", "request": { "method": "POST", "url": "{{baseUrl}}/api/appointments", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"professionalId\":\"22222222-2222-4222-8222-222222222222\",\"serviceId\":\"33333333-3333-4333-8333-333333333333\",\"start\":\"2026-11-20T10:00:00.000Z\",\"clientName\":\"Ana Pérez\",\"clientPhone\":\"+54 9 11 5555 5555\"}" }, "tests": [] } },
-        { "name": "Replace appointment", "request": { "method": "PUT", "url": "{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"professionalId\":\"22222222-2222-4222-8222-222222222222\",\"serviceId\":\"33333333-3333-4333-8333-333333333333\",\"start\":\"2026-11-20T11:00:00.000Z\",\"clientName\":\"Ana Pérez\",\"clientPhone\":\"+54 9 11 5555 5555\",\"clientEmail\":null,\"notes\":null,\"status\":\"confirmed\"}" }, "tests": [] } },
-        { "name": "Update appointment status", "request": { "method": "PATCH", "url": "{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444/status", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"status\":\"confirmed\"}" }, "tests": [] } },
-        { "name": "Delete appointment", "request": { "method": "DELETE", "url": "{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } }
+        {"name":"List appointments (filtered)","request":{"method":"GET","url":"{{baseUrl}}/api/appointments?professionalId=22222222-2222-4222-8222-222222222222&date=2026-11-20","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Get appointment by id","request":{"method":"GET","url":"{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"Create appointment","request":{"method":"POST","url":"{{baseUrl}}/api/appointments","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"professionalId\":\"22222222-2222-4222-8222-222222222222\",\"serviceId\":\"33333333-3333-4333-8333-333333333333\",\"start\":\"2026-11-20T10:00:00.000Z\",\"clientName\":\"Ana Pérez\",\"clientPhone\":\"+54 9 11 5555 5555\"}"},"tests":[]}},
+        {"name":"Replace appointment","request":{"method":"PUT","url":"{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"professionalId\":\"22222222-2222-4222-8222-222222222222\",\"serviceId\":\"33333333-3333-4333-8333-333333333333\",\"start\":\"2026-11-20T11:00:00.000Z\",\"clientName\":\"Ana Pérez\",\"clientPhone\":\"+54 9 11 5555 5555\",\"clientEmail\":null,\"notes\":null,\"status\":\"confirmed\"}"},"tests":[]}},
+        {"name":"Update appointment status","request":{"method":"PATCH","url":"{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444/status","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"status\":\"confirmed\"}"},"tests":[]}},
+        {"name":"Delete appointment","request":{"method":"DELETE","url":"{{baseUrl}}/api/appointments/44444444-4444-4444-8444-444444444444","headers":[{"name":"Authorization","value":"Bearer {{adminToken}}"}],"params":[],"body":{"type":"none","raw":""},"tests":[]}}
       ]
     },
     {
       "name": "Errors",
       "items": [
-        { "name": "400 – invalid area body", "request": { "method": "POST", "url": "{{baseUrl}}/api/areas", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"name\":\"\"}" }, "tests": [] } },
-        { "name": "400 – invalid service price on PUT", "request": { "method": "PUT", "url": "{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"name\":\"Manicuría básica\",\"durationMinutes\":45,\"price\":-1,\"areaId\":\"11111111-1111-4111-8111-111111111111\"}" }, "tests": [] } },
-        { "name": "400 – impossible appointment date", "request": { "method": "GET", "url": "{{baseUrl}}/api/appointments?professionalId=22222222-2222-4222-8222-222222222222&date=2026-13-45", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "404 – missing area", "request": { "method": "GET", "url": "{{baseUrl}}/api/areas/99999999-9999-4999-8999-999999999999", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "404 – missing appointment", "request": { "method": "GET", "url": "{{baseUrl}}/api/appointments/99999999-9999-4999-8999-999999999999", "headers": [], "params": [], "body": { "type": "none", "raw": "" }, "tests": [] } },
-        { "name": "409 – overlapping appointment", "request": { "method": "POST", "url": "{{baseUrl}}/api/appointments", "headers": [{ "name": "Content-Type", "value": "application/json" }], "params": [], "body": { "type": "json", "raw": "{\"professionalId\":\"22222222-2222-4222-8222-222222222222\",\"serviceId\":\"33333333-3333-4333-8333-333333333333\",\"start\":\"2026-11-20T10:00:00.000Z\",\"clientName\":\"Ana Pérez\",\"clientPhone\":\"+54 9 11 5555 5555\"}" }, "tests": [] } }
+        {"name":"400 – invalid area body","request":{"method":"POST","url":"{{baseUrl}}/api/areas","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\":\"\"}"},"tests":[]}},
+        {"name":"400 – invalid service price on PUT","request":{"method":"PUT","url":"{{baseUrl}}/api/services/33333333-3333-4333-8333-333333333333","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"name\":\"Manicuría básica\",\"durationMinutes\":45,\"price\":-1,\"areaId\":\"11111111-1111-4111-8111-111111111111\"}"},"tests":[]}},
+        {"name":"400 – impossible appointment date","request":{"method":"GET","url":"{{baseUrl}}/api/appointments?professionalId=22222222-2222-4222-8222-222222222222&date=2026-13-45","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"404 – missing area","request":{"method":"GET","url":"{{baseUrl}}/api/areas/99999999-9999-4999-8999-999999999999","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"404 – missing appointment","request":{"method":"GET","url":"{{baseUrl}}/api/appointments/99999999-9999-4999-8999-999999999999","headers":[],"params":[],"body":{"type":"none","raw":""},"tests":[]}},
+        {"name":"409 – overlapping appointment","request":{"method":"POST","url":"{{baseUrl}}/api/appointments","headers":[{"name":"Content-Type","value":"application/json"},{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"json","raw":"{\"professionalId\":\"22222222-2222-4222-8222-222222222222\",\"serviceId\":\"33333333-3333-4333-8333-333333333333\",\"start\":\"2026-11-20T10:00:00.000Z\",\"clientName\":\"Ana Pérez\",\"clientPhone\":\"+54 9 11 5555 5555\"}"},"tests":[]}},
+        {"name":"401 – missing bearer token","request":{"method":"POST","url":"{{baseUrl}}/api/areas","headers":[{"name":"Content-Type","value":"application/json"}],"params":[],"body":{"type":"json","raw":"{\"name\": \"Manicuría\"}"},"tests":[]}},
+        {"name":"401 – invalid login credentials","request":{"method":"POST","url":"{{baseUrl}}/api/auth/login","headers":[{"name":"Content-Type","value":"application/json"}],"params":[],"body":{"type":"json","raw":"{\"email\": \"user@example.com\", \"password\": \"wrong-password\"}"},"tests":[]}},
+        {"name":"403 – non-admin delete","request":{"method":"DELETE","url":"{{baseUrl}}/api/areas/11111111-1111-4111-8111-111111111111","headers":[{"name":"Authorization","value":"Bearer {{token}}"}],"params":[],"body":{"type":"none","raw":""},"tests":[]}}
       ]
     }
   ]

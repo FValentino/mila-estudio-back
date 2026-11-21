@@ -32,3 +32,19 @@ export class ValidationError extends DomainError {
     super(message, details);
   }
 }
+
+export class UnauthorizedError extends DomainError {
+  readonly statusCode = 401;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class ForbiddenError extends DomainError {
+  readonly statusCode = 403;
+
+  constructor(message: string) {
+    super(message);
+  }
+}

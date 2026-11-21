@@ -1,4 +1,6 @@
 import express from 'express';
+import { requireAdmin } from '../../../shared/http/require-admin.js';
+import { requireAuth } from '../../../shared/http/require-auth.js';
 import { idParamSchema } from '../../../shared/http/id-param.schema.js';
 import {
   createProfessionalSchema,
@@ -33,7 +35,7 @@ professionalsRouter.get('/:id', async (req, res, next) => {
   }
 });
 
-professionalsRouter.post('/', async (req, res, next) => {
+professionalsRouter.post('/', requireAuth, async (req, res, next) => {
   try {
     const input = createProfessionalSchema.parse(req.body);
     res.status(201).json(await createProfessional(input));
@@ -42,7 +44,7 @@ professionalsRouter.post('/', async (req, res, next) => {
   }
 });
 
-professionalsRouter.patch('/:id', async (req, res, next) => {
+professionalsRouter.patch('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     const input = updateProfessionalSchema.parse(req.body);
@@ -52,7 +54,7 @@ professionalsRouter.patch('/:id', async (req, res, next) => {
   }
 });
 
-professionalsRouter.put('/:id', async (req, res, next) => {
+professionalsRouter.put('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     const input = replaceProfessionalSchema.parse(req.body);
@@ -62,7 +64,7 @@ professionalsRouter.put('/:id', async (req, res, next) => {
   }
 });
 
-professionalsRouter.delete('/:id', async (req, res, next) => {
+professionalsRouter.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     await removeProfessional(id);

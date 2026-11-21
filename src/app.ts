@@ -3,6 +3,7 @@ import { appointmentsRouter } from './features/appointments/controllers/appointm
 import { areasRouter } from './features/areas/controllers/areas.controller.js';
 import { professionalsRouter } from './features/professionals/controllers/professionals.controller.js';
 import { servicesRouter } from './features/services/controllers/services.controller.js';
+import { authRouter } from './features/users/controllers/auth.controller.js';
 import { errorHandler, sendError } from './shared/http/error-response.js';
 
 export const app: express.Express = express();
@@ -14,6 +15,7 @@ app.use((req, _res, next) => {
   next();
 });
 
+app.use('/api/auth', authRouter);
 app.use('/api/areas', areasRouter);
 app.use('/api/professionals', professionalsRouter);
 app.use('/api/services', servicesRouter);

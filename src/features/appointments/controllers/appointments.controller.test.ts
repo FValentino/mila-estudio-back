@@ -1,11 +1,16 @@
 import type { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { errorHandler } from '../../../shared/http/error-response.js';
 import { replaceAppointment } from '../services/appointments.services.js';
 import { AppointmentStatus } from '../types/appointment.types.js';
 import { appointmentsRouter } from './appointments.controller.js';
 
-vi.mock('../../../shared/config/env.js', () => ({ env: { TIMEZONE: 'America/Argentina/Buenos_Aires' } }));
+const testEnv = vi.hoisted(() => ({
+  JWT_SECRET: 'test-jwt-secret',
+  TIMEZONE: 'America/Argentina/Buenos_Aires',
+}));
+vi.mock('../../../shared/config/env.js', () => ({ env: testEnv }));
 vi.mock('../services/appointments.services.js', () => ({
   createAppointment: vi.fn(),
   getAppointment: vi.fn(),
@@ -50,7 +55,14 @@ const SERVICE_ID = '33333333-3333-4333-8333-333333333333';
 const START = '2026-11-20T10:00:00.000Z';
 
 function createRequest(url: string, body: unknown, method: string): Request {
-  return { method, url, query: {}, params: {}, body, headers: {} } as unknown as Request;
+  return {
+    method,
+    url,
+    query: {},
+    params: {},
+    body,
+    headers: { authorization: `Bearer ${jwt.sign({ sub: 'user-1', role: 'admin' }, testEnv.JWT_SECRET, { expiresIn: '1h' })}` },
+  } as unknown as Request;
 }
 
 beforeEach(() => {

@@ -1,8 +1,12 @@
 import type { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { errorHandler } from '../../../shared/http/error-response.js';
 import { replaceService } from '../services/services.services.js';
 import { servicesRouter } from './services.controller.js';
+
+const testEnv = vi.hoisted(() => ({ JWT_SECRET: 'test-jwt-secret' }));
+vi.mock('../../../shared/config/env.js', () => ({ env: testEnv }));
 
 vi.mock('../services/services.services.js', () => ({
   createService: vi.fn(),
@@ -52,7 +56,7 @@ function createRequest(body: unknown): Request {
     query: {},
     params: {},
     body,
-    headers: {},
+    headers: { authorization: `Bearer ${jwt.sign({ sub: 'user-1', role: 'admin' }, testEnv.JWT_SECRET, { expiresIn: '1h' })}` },
   } as unknown as Request;
 }
 

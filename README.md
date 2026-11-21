@@ -53,8 +53,18 @@ pnpm install
 
 Todas las rutas están bajo `/api`. El cuerpo y los parámetros se validan con zod. Las respuestas contienen objetos planos (DTO), nunca entidades de TypeORM.
 
+### Autenticación y permisos
+
+`POST /api/auth/register` crea usuarios con rol `user`. `POST /api/auth/login` devuelve un JWT con validez de 7 días; el payload solo expone `sub` y `role` como claims de aplicación. El email se normaliza con `trim` y minúsculas antes de buscarlo o guardarlo, y la migración agrega un índice único funcional sobre `lower(email)`.
+
+Las rutas `GET` son públicas. Las rutas `POST`, `PUT` y `PATCH` requieren el header `Authorization: Bearer <token>` con cualquier usuario autenticado. Las rutas `DELETE` requieren además el rol `admin`.
+
+Para crear el primer administrador, completar `ADMIN_EMAIL` y `ADMIN_PASSWORD` en `.env` y ejecutar `pnpm seed:admin`. El script crea o actualiza ese usuario con rol `admin`; no agrega secretos al repositorio.
+
 | Método | Ruta | Respuesta correcta |
 | --- | --- | --- |
+| POST | `/api/auth/register` | `201` – usuario creado / `400` si el cuerpo es inválido / `409` si el email ya está registrado |
+| POST | `/api/auth/login` | `200` – JWT / `400` si el cuerpo es inválido / `401` si las credenciales son inválidas |
 | GET | `/api/areas` | `200` – lista de áreas |
 | GET | `/api/areas/:id` | `200` – área / `404` si no existe |
 | POST | `/api/areas` | `201` – área creada / `400` si el cuerpo es inválido |
@@ -112,7 +122,7 @@ Todas las respuestas de error usan la misma envoltura:
 }
 ```
 
-Los códigos son `400` (validación, JSON malformado), `404` (recurso inexistente), `409` (conflicto de negocio o restricción de base de datos) y `500` (error inesperado).
+Los códigos son `400` (validación, JSON malformado), `401` (token ausente, inválido o credenciales incorrectas), `403` (usuario autenticado sin rol `admin`), `404` (recurso inexistente), `409` (conflicto de negocio o restricción de base de datos) y `500` (error inesperado).
 
 ### Variables de entorno
 
@@ -121,6 +131,7 @@ Copiar `.env.example` a `.env` y completar los valores antes de iniciar la API:
 | Variable | Descripción |
 | --- | --- |
 | `PORT` | Puerto HTTP del servidor |
+| `JWT_SECRET` | Secreto usado para firmar y verificar JWT; obligatorio |
 | `DB_HOST` | Host de PostgreSQL |
 | `DB_PORT` | Puerto de PostgreSQL |
 | `DB_USER` | Usuario de PostgreSQL |
@@ -128,6 +139,8 @@ Copiar `.env.example` a `.env` y completar los valores antes de iniciar la API:
 | `DB_NAME` | Nombre de la base de datos |
 | `DATABASE_URL` | Opcional. Cadena de conexión PostgreSQL; cuando está presente tiene prioridad sobre `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` y `DB_NAME` |
 | `TIMEZONE` | Zona horaria IANA usada para los filtros de día; por defecto `America/Argentina/Buenos_Aires` |
+| `ADMIN_EMAIL` | Opcional. Email del usuario admin creado o actualizado por `pnpm seed:admin` |
+| `ADMIN_PASSWORD` | Opcional. Contraseña del usuario admin creado o actualizado por `pnpm seed:admin` |
 
 La conexión se configura únicamente desde estas variables; `synchronize` está desactivado. `DATABASE_URL` aparece comentada en `.env.example`: descomentarla la habilita; si se deja comentada o vacía se usan las variables `DB_*`. Un valor inválido de `TIMEZONE` hace que la API falle al iniciar, con el error en los logs.
 
@@ -137,15 +150,16 @@ La conexión se configura únicamente desde estas variables; `synchronize` está
 pnpm migration:run
 ```
 
-El comando inicializa el `DataSource` una vez, aplica la migración inicial (tablas, enum de estado, columna `price` de servicios como `numeric(10,2)`, claves foráneas con `RESTRICT` e índices) y cierra la conexión.
+El comando inicializa el `DataSource` una vez, aplica la migración inicial (tablas, enum de estado, columna `price` de servicios como `numeric(10,2)`, claves foráneas con `RESTRICT` e índices), crea la tabla `users` con email único, hash de contraseña y rol, y cierra la conexión.
 
 ### Colección Thunder Client
 
 1. Abrir Thunder Client en VS Code.
 2. En `Collections`, elegir `Import` → `From File` y seleccionar `thunder-client/mila-estudio.json`.
 3. La variable `baseUrl` queda configurada en `http://localhost:3000`; ajustarla si el servidor usa otro `PORT`.
+4. Después de hacer login, copiar el `token` devuelto en la variable `token`. Para las peticiones `DELETE`, usar el token de un usuario admin en la variable `adminToken`.
 
-La colección incluye los 20 endpoints anteriores más los 4 `PUT`, y trae requests de error para `400` por cuerpo inválido, `404` por id inexistente y fecha imposible en los filtros de turnos. No incluye requests `401` porque este bloque todavía no implementa autenticación; se agregarán cuando exista el middleware de auth y devuelva `401` con la envoltura de errores estándar.
+La colección incluye los 20 endpoints anteriores, los 4 `PUT` y los 2 endpoints de autenticación. Las operaciones de escritura ya envían `Authorization: Bearer <token>`; las de eliminación usan `adminToken`. También trae requests de error para `400`, `401`, `403`, `404` y `409`, con la envoltura de errores estándar.
 
 ### Comandos útiles
 
@@ -153,6 +167,8 @@ La colección incluye los 20 endpoints anteriores más los 4 `PUT`, y trae reque
 pnpm dev
 pnpm typecheck
 pnpm test
+pnpm migration:run
+pnpm seed:admin
 pnpm build
 pnpm start
 ```

@@ -31,6 +31,10 @@ const state = vi.hoisted(() => ({
   routesByRouter: [] as CapturedRoute[][],
 }));
 
+vi.mock('../config/env.js', () => ({
+  env: { JWT_SECRET: 'test-jwt-secret', TIMEZONE: 'America/Argentina/Buenos_Aires' },
+}));
+
 vi.mock('express', () => {
   const addRoute = (routes: CapturedRoute[], method: string, path: string, handlers: unknown[]): void => {
     const handler = handlers[handlers.length - 1];

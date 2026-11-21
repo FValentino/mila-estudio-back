@@ -1,9 +1,13 @@
 import type { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NotFoundError } from '../../../shared/errors/domain-errors.js';
 import { errorHandler } from '../../../shared/http/error-response.js';
-import { getArea, replaceArea } from '../services/areas.services.js';
+import { getArea, removeArea, replaceArea } from '../services/areas.services.js';
 import { areasRouter } from './areas.controller.js';
+
+const testEnv = vi.hoisted(() => ({ JWT_SECRET: 'test-jwt-secret' }));
+vi.mock('../../../shared/config/env.js', () => ({ env: testEnv }));
 
 vi.mock('../services/areas.services.js', () => ({
   createArea: vi.fn(),
@@ -52,7 +56,7 @@ function createRequest(body: unknown): Request {
     query: {},
     params: {},
     body,
-    headers: {},
+    headers: { authorization: `Bearer ${jwt.sign({ sub: 'user-1', role: 'admin' }, testEnv.JWT_SECRET, { expiresIn: '1h' })}` },
   } as unknown as Request;
 }
 
@@ -64,6 +68,23 @@ function createGetRequest(): Request {
     params: {},
     body: {},
     headers: {},
+  } as unknown as Request;
+}
+
+
+function createDeleteRequest(role?: 'user' | 'admin'): Request {
+  const headers = role === undefined
+    ? {}
+    : {
+        authorization: `Bearer ${jwt.sign({ sub: 'user-1', role }, testEnv.JWT_SECRET, { expiresIn: '1h' })}`,
+      };
+  return {
+    method: 'DELETE',
+    url: `/${AREA_ID}`,
+    query: {},
+    params: {},
+    body: {},
+    headers,
   } as unknown as Request;
 }
 
@@ -175,5 +196,43 @@ describe('GET /api/areas/:id error forwarding', () => {
     expect(captured.body).toEqual({ error: { message: 'Internal server error', details: [] } });
     expect(JSON.stringify(captured.body)).not.toContain('stack');
     expect(consoleError).toHaveBeenCalledWith(error);
+  });
+});
+
+describe('DELETE /api/areas/:id authorization', () => {
+  it('returns HTTP 401 before calling the service when no token is sent', async () => {
+    const { res, captured } = createResponse();
+    const req = createDeleteRequest();
+
+    areasRouter(req, res, nextFor(req, res));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(captured.statusCode).toBe(401);
+    expect(captured.body).toMatchObject({ error: { message: 'Authentication required', details: [] } });
+    expect(removeArea).not.toHaveBeenCalled();
+  });
+
+  it('returns HTTP 403 for an authenticated non-admin user', async () => {
+    const { res, captured } = createResponse();
+    const req = createDeleteRequest('user');
+
+    areasRouter(req, res, nextFor(req, res));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(captured.statusCode).toBe(403);
+    expect(captured.body).toEqual({ error: { message: 'Admin role required', details: [] } });
+    expect(removeArea).not.toHaveBeenCalled();
+  });
+
+  it('returns HTTP 204 for an admin token', async () => {
+    vi.mocked(removeArea).mockResolvedValue(undefined);
+    const { res, captured } = createResponse();
+    const req = createDeleteRequest('admin');
+
+    areasRouter(req, res, nextFor(req, res));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(captured.statusCode).toBe(204);
+    expect(removeArea).toHaveBeenCalledWith(AREA_ID);
   });
 });

@@ -1,9 +1,13 @@
 import type { NextFunction, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NotFoundError } from '../../../shared/errors/domain-errors.js';
 import { errorHandler } from '../../../shared/http/error-response.js';
 import { getProfessional, replaceProfessional } from '../services/professionals.services.js';
 import { professionalsRouter } from './professionals.controller.js';
+
+const testEnv = vi.hoisted(() => ({ JWT_SECRET: 'test-jwt-secret' }));
+vi.mock('../../../shared/config/env.js', () => ({ env: testEnv }));
 
 vi.mock('../services/professionals.services.js', () => ({
   createProfessional: vi.fn(),
@@ -53,7 +57,7 @@ function createRequest(body: unknown): Request {
     query: {},
     params: {},
     body,
-    headers: {},
+    headers: { authorization: `Bearer ${jwt.sign({ sub: 'user-1', role: 'admin' }, testEnv.JWT_SECRET, { expiresIn: '1h' })}` },
   } as unknown as Request;
 }
 

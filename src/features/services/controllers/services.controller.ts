@@ -1,4 +1,6 @@
 import express from 'express';
+import { requireAdmin } from '../../../shared/http/require-admin.js';
+import { requireAuth } from '../../../shared/http/require-auth.js';
 import { idParamSchema } from '../../../shared/http/id-param.schema.js';
 import { createServiceSchema, replaceServiceSchema, updateServiceSchema } from '../types/service.types.js';
 import {
@@ -29,7 +31,7 @@ servicesRouter.get('/:id', async (req, res, next) => {
   }
 });
 
-servicesRouter.post('/', async (req, res, next) => {
+servicesRouter.post('/', requireAuth, async (req, res, next) => {
   try {
     const input = createServiceSchema.parse(req.body);
     res.status(201).json(await createService(input));
@@ -38,7 +40,7 @@ servicesRouter.post('/', async (req, res, next) => {
   }
 });
 
-servicesRouter.patch('/:id', async (req, res, next) => {
+servicesRouter.patch('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     const input = updateServiceSchema.parse(req.body);
@@ -48,7 +50,7 @@ servicesRouter.patch('/:id', async (req, res, next) => {
   }
 });
 
-servicesRouter.put('/:id', async (req, res, next) => {
+servicesRouter.put('/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     const input = replaceServiceSchema.parse(req.body);
@@ -58,7 +60,7 @@ servicesRouter.put('/:id', async (req, res, next) => {
   }
 });
 
-servicesRouter.delete('/:id', async (req, res, next) => {
+servicesRouter.delete('/:id', requireAuth, requireAdmin, async (req, res, next) => {
   try {
     const { id } = idParamSchema.parse(req.params);
     await removeService(id);

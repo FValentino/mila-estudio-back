@@ -3,18 +3,24 @@ import { IANAZone } from 'luxon';
 
 const DEFAULT_TIMEZONE = 'America/Argentina/Buenos_Aires';
 const DATABASE_ENV_KEYS = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'] as const;
-const REQUIRED_ENV_KEYS = ['PORT'] as const;
+const REQUIRED_ENV_KEYS = ['PORT', 'JWT_SECRET'] as const;
+const SEED_ENV_KEYS = ['ADMIN_EMAIL', 'ADMIN_PASSWORD'] as const;
 
-type EnvKey = (typeof REQUIRED_ENV_KEYS)[number] | (typeof DATABASE_ENV_KEYS)[number];
+type EnvKey = (typeof REQUIRED_ENV_KEYS)[number]
+  | (typeof DATABASE_ENV_KEYS)[number]
+  | (typeof SEED_ENV_KEYS)[number];
 
 export interface Env {
   PORT: number;
+  JWT_SECRET: string;
   DB_HOST?: string;
   DB_PORT?: number;
   DB_USER?: string;
   DB_PASSWORD?: string;
   DB_NAME?: string;
   DATABASE_URL?: string;
+  ADMIN_EMAIL?: string;
+  ADMIN_PASSWORD?: string;
   TIMEZONE: string;
 }
 
@@ -70,10 +76,16 @@ export function loadEnv(): Env {
       }
     : {};
 
+  const adminEmail = readValue('ADMIN_EMAIL');
+  const adminPassword = readValue('ADMIN_PASSWORD');
+
   return {
     PORT: requirePositiveInteger('PORT'),
+    JWT_SECRET: requireString('JWT_SECRET'),
     ...databaseConfig,
     ...(databaseUrl === undefined ? {} : { DATABASE_URL: databaseUrl }),
+    ...(adminEmail === undefined ? {} : { ADMIN_EMAIL: adminEmail }),
+    ...(adminPassword === undefined ? {} : { ADMIN_PASSWORD: adminPassword }),
     TIMEZONE: readTimezone(),
   };
 }
