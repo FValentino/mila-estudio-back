@@ -1,0 +1,28 @@
+import 'reflect-metadata';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, RelationId, UpdateDateColumn } from 'typeorm';
+import { Area } from '../../areas/entities/area.entity.js';
+
+@Entity({ name: 'services' })
+export class ServiceOffering {
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
+
+  @Column({ type: 'varchar', length: 150 })
+  name!: string;
+
+  @Column({ type: 'int' })
+  durationMinutes!: number;
+
+  @ManyToOne(() => Area, { onDelete: 'RESTRICT', nullable: false })
+  @JoinColumn({ name: 'area_id' })
+  area!: Area;
+
+  @RelationId((service: ServiceOffering) => service.area)
+  areaId!: string;
+
+  @CreateDateColumn({ type: 'timestamptz' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'timestamptz' })
+  updatedAt!: Date;
+}
