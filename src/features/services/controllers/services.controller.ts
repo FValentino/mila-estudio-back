@@ -1,5 +1,4 @@
 import express from 'express';
-import { asyncRoute } from '../../../shared/http/async-route.js';
 import { idParamSchema } from '../../../shared/http/id-param.schema.js';
 import { createServiceSchema, replaceServiceSchema, updateServiceSchema } from '../types/service.types.js';
 import {
@@ -13,34 +12,58 @@ import {
 
 export const servicesRouter: express.Router = express.Router();
 
-servicesRouter.get('/', asyncRoute(async (_req, res) => {
-  res.json(await listServices());
-}));
+servicesRouter.get('/', async (_req, res, next) => {
+  try {
+    res.json(await listServices());
+  } catch (error) {
+    next(error);
+  }
+});
 
-servicesRouter.get('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  res.json(await getService(id));
-}));
+servicesRouter.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    res.json(await getService(id));
+  } catch (error) {
+    next(error);
+  }
+});
 
-servicesRouter.post('/', asyncRoute(async (req, res) => {
-  const input = createServiceSchema.parse(req.body);
-  res.status(201).json(await createService(input));
-}));
+servicesRouter.post('/', async (req, res, next) => {
+  try {
+    const input = createServiceSchema.parse(req.body);
+    res.status(201).json(await createService(input));
+  } catch (error) {
+    next(error);
+  }
+});
 
-servicesRouter.patch('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  const input = updateServiceSchema.parse(req.body);
-  res.json(await updateService(id, input));
-}));
+servicesRouter.patch('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    const input = updateServiceSchema.parse(req.body);
+    res.json(await updateService(id, input));
+  } catch (error) {
+    next(error);
+  }
+});
 
-servicesRouter.put('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  const input = replaceServiceSchema.parse(req.body);
-  res.json(await replaceService(id, input));
-}));
+servicesRouter.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    const input = replaceServiceSchema.parse(req.body);
+    res.json(await replaceService(id, input));
+  } catch (error) {
+    next(error);
+  }
+});
 
-servicesRouter.delete('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  await removeService(id);
-  res.status(204).end();
-}));
+servicesRouter.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    await removeService(id);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});

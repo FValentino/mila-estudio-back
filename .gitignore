@@ -80,3 +80,6 @@ pids/
 
 # Local assignment material (not part of the deliverable)
 rubrica*.md
+
+# Local tooling cache
+.atl/

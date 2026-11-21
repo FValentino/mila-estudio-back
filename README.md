@@ -95,7 +95,7 @@ Los campos opcionales usan `.nullish()`: si se omiten o se envían como `null`, 
 
 ### Manejo de errores en los controladores
 
-Los handlers asincrónicos usan el helper `asyncRoute`: envuelve la función y envía cualquier rechazo a `next(error)`. Es equivalente a escribir un `try/catch` en cada handler y llamar a `next(error)` en el `catch`, pero evita repetirlo en cada ruta. El middleware `errorHandler` es el único lugar que convierte ese error en la respuesta HTTP; por eso los controladores no devuelven entidades de TypeORM, sino DTOs generados por mappers.
+Los handlers asincrónicos usan `try/catch` explícito: envuelven todo el cuerpo y el `catch` reenvía el error con `next(error)`. El middleware `errorHandler` sigue siendo el único lugar que decide el status y el cuerpo de la respuesta; por eso los controladores no devuelven entidades de TypeORM, sino DTOs generados por mappers.
 
 Los `DELETE` responden `204` con `res.status(204).end()`: la operación terminó correctamente, pero no hay cuerpo que devolver.
 

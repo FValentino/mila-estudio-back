@@ -1,5 +1,4 @@
 import express from 'express';
-import { asyncRoute } from '../../../shared/http/async-route.js';
 import { idParamSchema } from '../../../shared/http/id-param.schema.js';
 import {
   createAppointmentSchema,
@@ -18,35 +17,59 @@ import {
 
 export const appointmentsRouter: express.Router = express.Router();
 
-appointmentsRouter.get('/', asyncRoute(async (req, res) => {
-  const query = listAppointmentsQuerySchema.parse(req.query);
-  res.json(await listAppointments(query));
-}));
+appointmentsRouter.get('/', async (req, res, next) => {
+  try {
+    const query = listAppointmentsQuerySchema.parse(req.query);
+    res.json(await listAppointments(query));
+  } catch (error) {
+    next(error);
+  }
+});
 
-appointmentsRouter.get('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  res.json(await getAppointment(id));
-}));
+appointmentsRouter.get('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    res.json(await getAppointment(id));
+  } catch (error) {
+    next(error);
+  }
+});
 
-appointmentsRouter.post('/', asyncRoute(async (req, res) => {
-  const input = createAppointmentSchema.parse(req.body);
-  res.status(201).json(await createAppointment(input));
-}));
+appointmentsRouter.post('/', async (req, res, next) => {
+  try {
+    const input = createAppointmentSchema.parse(req.body);
+    res.status(201).json(await createAppointment(input));
+  } catch (error) {
+    next(error);
+  }
+});
 
-appointmentsRouter.put('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  const input = replaceAppointmentSchema.parse(req.body);
-  res.json(await replaceAppointment(id, input));
-}));
+appointmentsRouter.put('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    const input = replaceAppointmentSchema.parse(req.body);
+    res.json(await replaceAppointment(id, input));
+  } catch (error) {
+    next(error);
+  }
+});
 
-appointmentsRouter.patch('/:id/status', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  const { status } = updateAppointmentStatusSchema.parse(req.body);
-  res.json(await updateAppointmentStatus(id, status));
-}));
+appointmentsRouter.patch('/:id/status', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    const { status } = updateAppointmentStatusSchema.parse(req.body);
+    res.json(await updateAppointmentStatus(id, status));
+  } catch (error) {
+    next(error);
+  }
+});
 
-appointmentsRouter.delete('/:id', asyncRoute(async (req, res) => {
-  const { id } = idParamSchema.parse(req.params);
-  await removeAppointment(id);
-  res.status(204).end();
-}));
+appointmentsRouter.delete('/:id', async (req, res, next) => {
+  try {
+    const { id } = idParamSchema.parse(req.params);
+    await removeAppointment(id);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
