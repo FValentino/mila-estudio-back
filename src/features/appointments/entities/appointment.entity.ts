@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -13,6 +14,11 @@ import { Professional } from '../../professionals/entities/professional.entity.j
 import { ServiceOffering } from '../../services/entities/service.entity.js';
 import { AppointmentStatus } from '../types/appointment.types.js';
 
+@Index('IDX_appointments_professional_start', ['professional', 'start'])
+@Index('IDX_appointments_start', ['start'])
+@Index('IDX_appointments_end_at', ['endAt'])
+@Index('IDX_appointments_professional_id', ['professional'])
+@Index('IDX_appointments_service_id', ['service'])
 @Entity({ name: 'appointments' })
 export class Appointment {
   @PrimaryGeneratedColumn('uuid')

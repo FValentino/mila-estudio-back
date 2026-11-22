@@ -1,7 +1,18 @@
 import 'reflect-metadata';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, RelationId, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  RelationId,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Area } from '../../areas/entities/area.entity.js';
 
+@Index('IDX_professionals_area_id', ['area'])
 @Entity({ name: 'professionals' })
 export class Professional {
   @PrimaryGeneratedColumn('uuid')

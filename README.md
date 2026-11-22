@@ -55,7 +55,7 @@ Todas las rutas están bajo `/api`. El cuerpo y los parámetros se validan con z
 
 ### Autenticación y permisos
 
-`POST /api/auth/register` crea usuarios con rol `user`. `POST /api/auth/login` devuelve un JWT con validez de 7 días; el payload solo expone `sub` y `role` como claims de aplicación. El email se normaliza con `trim` y minúsculas antes de buscarlo o guardarlo, y la migración agrega un índice único funcional sobre `lower(email)`.
+`POST /api/auth/register` crea usuarios con rol `user`. `POST /api/auth/login` devuelve un JWT con validez de 7 días; el payload solo expone `sub` y `role` como claims de aplicación. El email se normaliza con `trim` y minúsculas antes de buscarlo o guardarlo.
 
 Las rutas `GET` son públicas. Las rutas `POST`, `PUT` y `PATCH` requieren el header `Authorization: Bearer <token>` con cualquier usuario autenticado. Las rutas `DELETE` requieren además el rol `admin`.
 
@@ -137,15 +137,11 @@ Copiar `.env.example` a `.env` y completar los valores antes de iniciar la API:
 | `ADMIN_EMAIL` | Opcional. Email del usuario admin creado o actualizado por `pnpm seed:admin` |
 | `ADMIN_PASSWORD` | Opcional. Contraseña del usuario admin creado o actualizado por `pnpm seed:admin` |
 
-La conexión se configura únicamente desde `DATABASE_URL`; `synchronize` está desactivado. Un valor inválido de `TIMEZONE` hace que la API falle al iniciar, con el error en los logs.
+La conexión se configura únicamente desde `DATABASE_URL`; el esquema se sincroniza automáticamente desde las entidades (`synchronize: true`). Un valor inválido de `TIMEZONE` hace que la API falle al iniciar, con el error en los logs.
 
-### Migraciones
+### Esquema y datos
 
-```bash
-pnpm migration:run
-```
-
-El comando inicializa el `DataSource` una vez, aplica la migración inicial (tablas, enum de estado, columna `price` de servicios como `numeric(10,2)`, claves foráneas con `RESTRICT` e índices), crea la tabla `users` con email único, hash de contraseña y rol, y cierra la conexión.
+TypeORM crea y actualiza el esquema automáticamente desde las entidades al iniciar la API (`synchronize: true`). No hay migraciones: los datos se cargan a mano.
 
 ### Colección Thunder Client
 
@@ -162,7 +158,6 @@ La colección incluye los 20 endpoints anteriores, los 4 `PUT` y los 2 endpoints
 pnpm dev
 pnpm typecheck
 pnpm test
-pnpm migration:run
 pnpm seed:admin
 pnpm build
 pnpm start
