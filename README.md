@@ -49,6 +49,81 @@ cd mila-estudio-backend
 pnpm install
 ```
 
+## Cómo probarlo
+
+### 1. Requisitos
+
+- Node.js 20 o superior.
+- pnpm 11 o superior.
+- PostgreSQL 14 o superior, accesible desde `DATABASE_URL`.
+
+### 2. Configuración
+
+Copiar el archivo de ejemplo y completar los valores obligatorios:
+
+```bash
+cp .env.example .env
+```
+
+Completar `DATABASE_URL` y `JWT_SECRET`. `TIMEZONE` puede omitirse: por defecto usa `America/Argentina/Buenos_Aires`. El esquema se crea y actualiza automáticamente al inicializar el `DataSource` (`synchronize: true`), por lo que no hay migraciones que ejecutar.
+
+### 3. Arranque
+
+```bash
+pnpm install
+pnpm seed:demo
+pnpm dev
+```
+
+`pnpm seed:demo` carga datos de prueba de un tirón y puede repetirse: usa claves naturales estables y actualiza los registros existentes en lugar de duplicarlos. La API queda en `http://localhost:3000` salvo que `PORT` indique otro valor.
+
+### 4. Credenciales demo
+
+| Uso | Email | Contraseña |
+| --- | --- | --- |
+| Administrador | `admin@mila.test` | `AdminDemo123!` |
+| Usuario normal | `user@mila.test` | `UserDemo123!` |
+
+Son credenciales **solo para prueba**, publicadas en el repositorio a propósito. No deben usarse en ningún entorno real.
+
+### 5. Thunder Client
+
+1. Importar `thunder-client/mila-estudio.json` desde `Collections` → `Import` → `From File`.
+2. Verificar la variable `baseUrl` (`http://localhost:3000` por defecto).
+3. Hacer login con `admin@mila.test` y pegar el JWT devuelto en `adminToken`.
+4. Hacer login con `user@mila.test` y pegar el JWT devuelto en `token`.
+5. Los UUID fijos de la colección son ejemplos: reemplazarlos por ids reales devueltos por los `GET` después de correr el seed.
+
+### 6. Endpoints
+
+Las 24 rutas de negocio más las 2 de autenticación:
+
+- Públicas: `POST /api/auth/register`, `POST /api/auth/login`.
+- `GET` públicos (8): `/api/areas`, `/api/areas/:id`, `/api/professionals`, `/api/professionals/:id`, `/api/services`, `/api/services/:id`, `/api/appointments`, `/api/appointments/:id`.
+- Escritura con `Authorization: Bearer <token>` (12): `POST`, `PUT` y `PATCH` de `/api/areas`, `/api/professionals`, `/api/services` y `/api/appointments`; en turnos el `PATCH` es `/api/appointments/:id/status`.
+- `DELETE` con token de administrador (4): `/api/areas/:id`, `/api/professionals/:id`, `/api/services/:id`, `/api/appointments/:id`.
+
+### 7. Casos de error esperados
+
+| Código | Cómo provocarlo |
+| --- | --- |
+| `400` | Enviar `{"name":""}` a `POST /api/areas`, o un `price` negativo en un servicio. |
+| `401` | Llamar a una escritura sin header `Authorization`, o hacer login con contraseña incorrecta. |
+| `403` | Usar el token de `user@mila.test` en cualquier `DELETE`. |
+| `404` | Pedir `/api/areas/99999999-9999-4999-8999-999999999999`. |
+| `409` | Crear un turno solapado con uno sembrado para la misma profesional, o con un servicio de otra área. |
+| `500` | Interrumpir PostgreSQL durante una request y verificar el error en los logs del servidor. |
+
+Todas las respuestas de error usan la envoltura `{"error":{"message":"...","details":[...]}}`.
+
+### 8. Comandos de verificación
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
 ## Contrato de API
 
 Todas las rutas están bajo `/api`. El cuerpo y los parámetros se validan con zod. Las respuestas contienen objetos planos (DTO), nunca entidades de TypeORM.
@@ -141,7 +216,7 @@ La conexión se configura únicamente desde `DATABASE_URL`; el esquema se sincro
 
 ### Esquema y datos
 
-TypeORM crea y actualiza el esquema automáticamente desde las entidades al iniciar la API (`synchronize: true`). No hay migraciones: los datos se cargan a mano.
+TypeORM crea y actualiza el esquema automáticamente desde las entidades al iniciar la API (`synchronize: true`). No hay migraciones: los datos de prueba se cargan con `pnpm seed:demo` y el admin inicial con `pnpm seed:admin`.
 
 ### Colección Thunder Client
 
@@ -159,6 +234,7 @@ pnpm dev
 pnpm typecheck
 pnpm test
 pnpm seed:admin
+pnpm seed:demo
 pnpm build
 pnpm start
 ```

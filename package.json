@@ -10,7 +10,8 @@
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "seed:admin": "tsx src/shared/database/seed-admin.ts"
+    "seed:admin": "tsx src/shared/database/seed-admin.ts",
+    "seed:demo": "tsx src/shared/database/seed-demo.ts"
   },
   "keywords": [],
   "author": "",
