@@ -6,6 +6,8 @@ vi.mock('dotenv', () => ({ config: vi.fn() }));
 const ORIGINAL_ENV: NodeJS.ProcessEnv = { ...process.env };
 const DATABASE_URL = 'postgresql://url-user:url-pass@url-host:5432/url-db';
 const JWT_SECRET = 'test-jwt-secret';
+const LEGACY_DB_PREFIX = 'DB_';
+const LEGACY_DB_SUFFIXES = ['HOST', 'PORT', 'USER', 'PASSWORD', 'NAME'] as const;
 
 function clearEnv(): void {
   for (const key of Object.keys(process.env)) {
@@ -17,6 +19,12 @@ function setEnv(values: Record<string, string>): void {
   for (const [key, value] of Object.entries(values)) {
     process.env[key] = value;
   }
+}
+
+function legacyDbEnv(): Record<string, string> {
+  return Object.fromEntries(
+    LEGACY_DB_SUFFIXES.map((suffix) => [`${LEGACY_DB_PREFIX}${suffix}`, 'legacy-value']),
+  ) as Record<string, string>;
 }
 
 async function importEnv(): Promise<typeof import('./env.js')> {
@@ -34,25 +42,28 @@ afterEach(() => {
 });
 
 describe('loadEnv', () => {
-  it('starts with PORT, JWT_SECRET and DATABASE_URL', async () => {
+  it('starts with PORT, JWT_SECRET and DATABASE_URL only', async () => {
     setEnv({ PORT: '3000', JWT_SECRET, DATABASE_URL });
 
     const { loadEnv } = await importEnv();
     const loaded: Env = loadEnv();
 
-    expect(loaded).toMatchObject({
+    expect(loaded).toEqual({
       PORT: 3000,
       JWT_SECRET,
       DATABASE_URL,
       TIMEZONE: 'America/Argentina/Buenos_Aires',
     });
-    expect(loaded.DB_HOST).toBeUndefined();
-    expect(loaded.DB_PORT).toBeUndefined();
-    expect(loaded.DB_USER).toBeUndefined();
-    expect(loaded.DB_PASSWORD).toBeUndefined();
-    expect(loaded.DB_NAME).toBeUndefined();
-    expect(loaded.ADMIN_EMAIL).toBeUndefined();
-    expect(loaded.ADMIN_PASSWORD).toBeUndefined();
+    expect(Object.keys(loaded).filter((key) => key.startsWith(LEGACY_DB_PREFIX))).toEqual([]);
+  });
+
+  it('requires DATABASE_URL even when legacy connection variables are present', async () => {
+    setEnv({ PORT: '3000', JWT_SECRET, DATABASE_URL, ...legacyDbEnv() });
+
+    const { loadEnv } = await importEnv();
+    delete process.env.DATABASE_URL;
+
+    expect(() => loadEnv()).toThrow('Missing required environment variables: DATABASE_URL');
   });
 
   it('requires JWT_SECRET', async () => {
@@ -80,50 +91,19 @@ describe('loadEnv', () => {
     expect(loaded.ADMIN_PASSWORD).toBe('admin-password');
   });
 
-  it('starts with DB_* when DATABASE_URL is absent', async () => {
-    setEnv({
-      PORT: '3001',
-      JWT_SECRET,
-      DB_HOST: 'db-host',
-      DB_PORT: '5433',
-      DB_USER: 'db-user',
-      DB_PASSWORD: 'db-pass',
-      DB_NAME: 'db-name',
-    });
+  it('configures the DataSource only with DATABASE_URL', async () => {
+    setEnv({ PORT: '3000', JWT_SECRET, DATABASE_URL });
 
     const { loadEnv } = await importEnv();
-    const loaded: Env = loadEnv();
-
-    expect(loaded).toEqual({
-      PORT: 3001,
-      JWT_SECRET,
-      DB_HOST: 'db-host',
-      DB_PORT: 5433,
-      DB_USER: 'db-user',
-      DB_PASSWORD: 'db-pass',
-      DB_NAME: 'db-name',
-      TIMEZONE: 'America/Argentina/Buenos_Aires',
-    });
-    expect(loaded.DATABASE_URL).toBeUndefined();
-  });
-
-  it('gives DATABASE_URL precedence when both sources are present', async () => {
-    setEnv({
-      PORT: '3002',
-      JWT_SECRET,
-      DATABASE_URL,
-      DB_HOST: 'db-host',
-      DB_PORT: '5433',
-      DB_USER: 'db-user',
-      DB_PASSWORD: 'db-pass',
-      DB_NAME: 'db-name',
-    });
-
-    const { loadEnv } = await importEnv();
-    const loaded: Env = loadEnv();
+    const loaded = loadEnv();
     const { dataSource } = await import('../database/data-source.js');
+    const options = dataSource.options as unknown as Record<string, unknown>;
 
     expect(loaded.DATABASE_URL).toBe(DATABASE_URL);
-    expect(dataSource.options).toMatchObject({ type: 'postgres', url: DATABASE_URL });
+    expect(options.type).toBe('postgres');
+    expect(options.url).toBe(DATABASE_URL);
+    for (const key of ['host', 'port', 'username', 'password', 'database'] as const) {
+      expect(options[key]).toBeUndefined();
+    }
   });
 });

@@ -132,17 +132,12 @@ Copiar `.env.example` a `.env` y completar los valores antes de iniciar la API:
 | --- | --- |
 | `PORT` | Puerto HTTP del servidor |
 | `JWT_SECRET` | Secreto usado para firmar y verificar JWT; obligatorio |
-| `DB_HOST` | Host de PostgreSQL |
-| `DB_PORT` | Puerto de PostgreSQL |
-| `DB_USER` | Usuario de PostgreSQL |
-| `DB_PASSWORD` | Contraseña de PostgreSQL |
-| `DB_NAME` | Nombre de la base de datos |
-| `DATABASE_URL` | Opcional. Cadena de conexión PostgreSQL; cuando está presente tiene prioridad sobre `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD` y `DB_NAME` |
+| `DATABASE_URL` | Cadena de conexión PostgreSQL obligatoria |
 | `TIMEZONE` | Zona horaria IANA usada para los filtros de día; por defecto `America/Argentina/Buenos_Aires` |
 | `ADMIN_EMAIL` | Opcional. Email del usuario admin creado o actualizado por `pnpm seed:admin` |
 | `ADMIN_PASSWORD` | Opcional. Contraseña del usuario admin creado o actualizado por `pnpm seed:admin` |
 
-La conexión se configura únicamente desde estas variables; `synchronize` está desactivado. `DATABASE_URL` aparece comentada en `.env.example`: descomentarla la habilita; si se deja comentada o vacía se usan las variables `DB_*`. Un valor inválido de `TIMEZONE` hace que la API falle al iniciar, con el error en los logs.
+La conexión se configura únicamente desde `DATABASE_URL`; `synchronize` está desactivado. Un valor inválido de `TIMEZONE` hace que la API falle al iniciar, con el error en los logs.
 
 ### Migraciones
 
